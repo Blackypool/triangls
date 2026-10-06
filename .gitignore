@@ -5,3 +5,4 @@ gitignore       # я закинул чертежи Омега устройств
 a.out.dSYM
 .vscode
 app
+app.dSYM

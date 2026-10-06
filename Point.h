@@ -18,22 +18,22 @@ template <is_Decard_dim TypeCoord, std::size_t Dimension>
 class Point
 {
     private:
-        TypeCoord all_coords[Dimension]{};  // know on pre-proc
+        TypeCoord all_coords_[Dimension]{};  // know on pre-proc
 
     //_________________________________________________________________________________________________________________________________________//
     public:
 
-        constexpr       TypeCoord& x()       requires (Dimension >= 1) { return all_coords[0]; }  // constexpr - compile-time opt, work how inline
-        constexpr const TypeCoord& x() const requires (Dimension >= 1) { return all_coords[0]; }  // const for save coords + const points
+        constexpr       TypeCoord& x()       requires (Dimension >= 1) { return all_coords_[0]; }  // constexpr - compile-time opt, work how inline
+        constexpr const TypeCoord& x() const requires (Dimension >= 1) { return all_coords_[0]; }  // const for save coords + const points
 
-        constexpr       TypeCoord& y()       requires (Dimension >= 2) { return all_coords[1]; }
-        constexpr const TypeCoord& y() const requires (Dimension >= 2) { return all_coords[1]; }
+        constexpr       TypeCoord& y()       requires (Dimension >= 2) { return all_coords_[1]; }
+        constexpr const TypeCoord& y() const requires (Dimension >= 2) { return all_coords_[1]; }
 
-        constexpr       TypeCoord& z()       requires (Dimension >= 3) { return all_coords[2]; }
-        constexpr const TypeCoord& z() const requires (Dimension >= 3) { return all_coords[2]; }
+        constexpr       TypeCoord& z()       requires (Dimension >= 3) { return all_coords_[2]; }
+        constexpr const TypeCoord& z() const requires (Dimension >= 3) { return all_coords_[2]; }
 
-        constexpr       TypeCoord& operator[](std::size_t index)       { return all_coords[index]; }
-        constexpr const TypeCoord& operator[](std::size_t index) const { return all_coords[index]; }
+        constexpr       TypeCoord& operator[](std::size_t index)       { return all_coords_[index]; }
+        constexpr const TypeCoord& operator[](std::size_t index) const { return all_coords_[index]; }
 
     //_________________________________________________________________________________________________________________________________________//
         //  D  //  Constructor
@@ -45,7 +45,7 @@ class Point
             size_t i = 0;
             for (const TypeCoord& val : list)      // std::initializer_list have only ptr+size
                 if (i < Dimension)
-                    all_coords[i++] = val;  // not need move, because initializer_list is not owned data
+                    all_coords_[i++] = val;  // not need move, because initializer_list is not owned data
         }
 
         //  1  //  Destructor
@@ -54,8 +54,8 @@ class Point
         //  2  //  Copy in new
         Point(const Point& other)  // copy other in new obj <=> constructor
         {
-            for (size_t i = 0; i < Dimension; i++)
-                all_coords[i] = other.all_coords[i];
+            for (std::size_t i = 0; i < Dimension; i++)
+                all_coords_[i] = other.all_coords_[i];
         }
 
         //  3  //  Copy in exist
@@ -64,8 +64,8 @@ class Point
             if (this == &other)  // this = ptr
                 return *this;
 
-            for (size_t i = 0; i < Dimension; i++)
-                all_coords[i] = other.all_coords[i];
+            for (std::size_t i = 0; i < Dimension; i++)
+                all_coords_[i] = other.all_coords_[i];
 
             return *this;
         }
@@ -73,10 +73,10 @@ class Point
         //  4  //  Move to new
         Point(Point&& other) noexcept  // copy other in new obj + nulled other
         {
-            for (size_t i = 0; i < Dimension; i++)
+            for (std::size_t i = 0; i < Dimension; i++)
             {
-                all_coords[i] = std::move(other.all_coords[i]);
-                do_zero (other.all_coords[i]);
+                all_coords_[i] = std::move(other.all_coords_[i]);
+                do_zero (other.all_coords_[i]);
             }
         }
 
@@ -86,10 +86,10 @@ class Point
             if (this == &other)  // this = ptr
                 return *this;
 
-            for (size_t i = 0; i < Dimension; i++)
+            for (std::size_t i = 0; i < Dimension; i++)
             {
-                all_coords[i] = std::move(other.all_coords[i]);
-                do_zero (other.all_coords[i]);
+                all_coords_[i] = std::move(other.all_coords_[i]);
+                do_zero (other.all_coords_[i]);
             }
 
             return *this;
