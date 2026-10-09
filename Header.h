@@ -2,19 +2,27 @@
 #define MAIN_HEADER_H
 
 
+#define EPSILON_OF_ZERO 1e-4
 #define DE_BUG_ON
 #define TO_str(x) #x
 
 
 //_________________________________________EXCLUSIVELY_FOR_PROJECT_________________________________________________________________________//
-#define EPSILON_OF_ZERO 1e-9
+using precision_t = double;
+
+template <typename T>
+concept is_Decard_dim = requires(T a, T b)
+{
+    a + b;
+    {a != b} -> std::convertible_to<bool>;
+};
 //_________________________________________________________________________________________________________________________________________//
 
 
 
 //____________________________________________FAST_COMMANDS________________________________________________________________________________//
     // git add .
-    // git commit -m "line class"
+    // git commit -m "do + rewrite some geomtry classes"
     // git push
 
     // git pull
@@ -45,6 +53,7 @@
 #include <string>
 #include <string_view>
 #include <cmath>
+#include <complex>
 //_________________________________________________________________________________________________________________________________________//
 
 
@@ -63,6 +72,7 @@ enum errors_
     error_in_deep   = 6,
     stack_errorr    = 7,
     load_data       = 8,
+    euqlid_ruined   = 9,
 };
 
 #ifdef DE_BUG_ON
@@ -80,7 +90,7 @@ enum errors_
 
 
 //______________________________________________HEADERS_OF_ANOTHER_________________________________________________________________________//
-#include "Do_any_type_zero.h"
+#include "Dop_math.h"
 #include "Point.h"
 //_________________________________________________________________________________________________________________________________________//
 

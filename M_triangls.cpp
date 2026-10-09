@@ -1,125 +1,368 @@
 #include "Header.h"
 
-// нужно ли прямой знать о точках? -- да чтобы проверить какие точки брать для бесконечного пересечения
-// или не надо и просто в уравнение подставить?
-// добавить функцию, которая получает точку и проверяет лежит ли она на прямой
+#define SPHERE_SHELL
+#define BOX_SHELL
 
-// обрабатывать параллельные oy прямые через std::nullopt
+//________________________________________________Questions_Tasks__________________________________________________________________________//
+
+
+//_________________________________________________________________________________________________________________________________________//
+
 
 int main ()
 {
-
     return 0;
 }
 
 
-// 3 points + S + 3 lines
-class Triangl
-{};
-
-
-template <is_Decard_dim TypeCoord>
-class Line2D
+//___________________________________________________QUATERNION____________________________________________________________________________//
+class Quaternion
 {
     private:
-        Point<TypeCoord, 2> point_one_;  // крайние точки если они есть
-        Point<TypeCoord, 2> point_two_;
+        using quat = std::complex<precision_t>;
 
-        double k_;
-        double b_;
+        precision_t scalar_;
+        Vector<3> i_vector_;
 
-        double length_;
+    public:
+        explicit constexpr Quaternion() = default;
+        explicit constexpr Quaternion(precision_t sc, Vector<3> imaginary_vector) : scalar_(sc), i_vector_(imaginary_vector) {}
+};
+//_________________________________________________________________________________________________________________________________________//
+
+
+//_____________________________________________________MATRIX______________________________________________________________________________//
+class Matrix
+{};
+//_________________________________________________________________________________________________________________________________________//
+
+
+//______________________________________________________AABB_______________________________________________________________________________//
+class Parallelepiped
+{
+    private:
+        Point<3> min_left_, max_right_;
+
+    public:
+        explicit constexpr Parallelepiped() = default;
+        explicit constexpr Parallelepiped(Point<3> p_min, Point<3> p_max) : min_left_(p_min), max_right_(p_max) {}
+
+        // is_intersection?
+        constexpr bool operator^(const Parallelepiped& another)
+        {
+            return (another.min_left_.x() <= max_right_.x()) & (another.min_left_.y() <= max_right_.y()) & (another.min_left_.z() <= max_right_.z()) &
+                   (another.min_left_.x() >= min_left_.x() ) & (another.min_left_.y() >= min_left_.y() ) & (another.min_left_.z() >= min_left_.z())  ;
+        }
+};
+//_________________________________________________________________________________________________________________________________________//
+
+
+//_____________________________________________________TRIANGL_____________________________________________________________________________//
+template <std::size_t Dimension>
+class Triangl
+{
+    private:
+        Point<Dimension> point_A_, point_B_, point_C_;
+
+        #ifdef BOX_SHELL
+            Parallelepiped around_box_{};
+        #endif
+
+        #ifdef SPHERE_SHELL
+            Circle<Dimension> around_circle_{};
+        #endif
+
+        bool is_triangle_in_3D (Point<3> A, Point<3> B, Point<3> C) requires (Dimension == 3)
+        {
+            Vector<Dimension> U = B - A;
+            Vector<Dimension> V = C - A;
+
+            Vector<Dimension> n = U ^ V;  // [U x V]
+            precision_t n2 = n * n;
+
+            if (flush_to_zero (n2) == std::nullopt)
+                return false;
+
+            return true;  // all good
+        }
+
+        bool is_triangle_in_2D (Point<2> A, Point<2> B, Point<2> C) requires (Dimension == 2)
+        {
+            Line2D line(A, B);
+            if (line.is_on_line(C))
+                return false;
+
+            return true;  // all good
+        }
 
     //_________________________________________________________________________________________________________________________________________//
     public:
+        explicit Triangl() requires (Dimension > 1) = default;
+        explicit Triangl(Point<Dimension> p_A, Point<Dimension> p_B, Point<Dimension> p_C) requires (Dimension > 1) : 
+                                   point_A_(p_A), point_B_(p_B), point_C_(p_C)
+        {
+            if constexpr (Dimension == 3)
+                if (is_triangle_in_3D (p_A, p_B, p_C))
+                {
+                    #ifdef BOX_SHELL
+                        Point<3> min_p{};
+                        Point<3> max_p{};
+
+                        min_p.x() = std::min({p_A.x(), p_B.x(), p_C.x()});
+                        min_p.y() = std::min({p_A.y(), p_B.y(), p_C.y()});
+                        min_p.z() = std::min({p_A.z(), p_B.z(), p_C.z()});
+
+                        max_p.x() = std::max({p_A.x(), p_B.x(), p_C.x()});
+                        max_p.y() = std::max({p_A.y(), p_B.y(), p_C.y()});
+                        max_p.z() = std::max({p_A.z(), p_B.z(), p_C.z()});
+
+                        around_box_ = Parallelepiped(min_p, max_p);
+                    #endif
+
+                    #ifdef SPHERE_SHELL
+                        around_circle_ = Circle<Dimension>(p_A, p_B, p_C);
+                    #endif
+                    
+                    return;  // all good
+                }
+
+            if constexpr (Dimension == 2)
+                if (is_triangle_in_2D (p_A, p_B, p_C))
+                    return;  // all good
+
+            throw std::invalid_argument("triangle is unreal");
+        }
+                                   
+};
+//_________________________________________________________________________________________________________________________________________//
+
+
+//______________________________________________________CIRCLE_____________________________________________________________________________//
+template <std::size_t Dimension>
+class Circle
+{
+    private:
+        Point<Dimension> centr_;
+        precision_t radius_;
+        precision_t radius2_;       // save square of radius for optimize sqrt
 
     //_________________________________________________________________________________________________________________________________________//
-        //  Constructor based on 2 points  //
-        explicit Line2D(Point<TypeCoord, 2> p_1, Point<TypeCoord, 2> p_2) : point_one_(p_1), point_two_(p_2)
+    public:
+        //  Zero constructor  //
+        explicit Circle() = default;
+
+        //  point + radius  //
+        explicit Circle(Point<Dimension> heart, precision_t diameter_in_half) : 
+        centr_(heart), radius_(diameter_in_half), radius2_(diameter_in_half * diameter_in_half) {}
+
+        //  3 Points 3D  //
+        explicit Circle(const Point<Dimension>& A, const Point<Dimension>& B, const Point<Dimension>& C) requires (Dimension == 3)
         {
-            // вызов функции поиска коэфициентов из двух точек
-            // search len
+            Vector<Dimension> U = B - A;
+            precision_t U2 = U * U;
 
-            std::pair coeffs = get_line_coeffs (point_one_, point_two_);
-            length_ = distance (point_one_, point_two_);
+            Vector<Dimension> V = C - A;
+            precision_t V2 = V * V;
 
+            Vector<Dimension> n = U ^ V;  // [U x V]
+            precision_t n2 = n * n;
+
+            Vector<Dimension> m = V2 * U - U2 * V;
+
+            Vector<Dimension> r = (m ^ n) / (2 * n2);
+
+            ///////////////////////////////////////////
+            centr_ = A + r;
+            radius2_ = r * r;
+            radius_ = std::sqrt(radius2_);
+        }
+
+        bool is_intersection (const Circle& other) const // work as sphere
+        {
+            precision_t dist = square_of_distance_bw_p (centr_, other.centr_);
+
+            precision_t touch_dist = radius2_ + (2 * radius_ * other.radius_) + other.radius2_;
+
+            if ((dist - touch_dist) <= EPSILON_OF_ZERO)
+                return true;
+
+            return false;
+        }
+};
+//_________________________________________________________________________________________________________________________________________//
+
+
+//  Ax + By + Cz + D = 0  //  coeffs is normilized  //  A > 0  //  D = po
+class Plane3D
+{
+    private:
+        precision_t A_, B_, C_, D_;
+
+        void need_negative_li()
+        {
+            if (flush_to_zero(A_) != std::nullopt)
+                if (A_ < 0)
+                {
+                    negative_all();
+                    return;
+                }
+
+            if (flush_to_zero(B_) != std::nullopt)
+                if (B_ < 0)
+                {
+                    negative_all();
+                    return;
+                }
+
+            if (flush_to_zero(C_) != std::nullopt)
+                if (C_ < 0)
+                {
+                    negative_all();
+                    return;
+                }
+        }
+
+        void negative_all()
+        {
+            A_ *= -1;
+            B_ *= -1;
+            C_ *= -1;
+            D_ *= -1;
+        }
+
+    //_________________________________________________________________________________________________________________________________________//
+    public:
+        explicit Plane3D() = default;
+        explicit Plane3D(precision_t A_A, precision_t B_B, precision_t C_C, precision_t D_D) : A_(A_A), B_(B_B), C_(C_C), D_(D_D)
+        {
+            if (flush_to_zero(A_) == std::nullopt && flush_to_zero(B_) == std::nullopt && flush_to_zero(C_) == std::nullopt)
+                AsserT (flush_to_zero(D_) != std::nullopt, euqlid_ruined, );
+
+            precision_t normilize = std::sqrt (A_*A_ + B_*B_ + C_*C_);
+
+            A_ /= normilize;
+            B_ /= normilize;
+            C_ /= normilize;
+            D_ /= normilize;
+
+            need_negative_li();
+        }
+
+        // T/T  -- absolute equival
+        // T/F  -- parallel
+        // F/.. -- mismatch
+        std::pair<bool, bool> compare_planes (const Plane3D& sec_plane) const
+        {
+            if (flush_to_zero(A_ - sec_plane.A_) == std::nullopt && 
+                flush_to_zero(B_ - sec_plane.B_) == std::nullopt && 
+                flush_to_zero(C_ - sec_plane.C_) == std::nullopt    )
+            {
+                if (flush_to_zero(D_ - sec_plane.D_) == std::nullopt)
+                    return std::pair{true, true};  // equival
+
+                return std::pair{true, false};  // parallel
+            }
+
+            return std::pair{false, false};  // mismatch
+        }
+
+        //  is point lie on plane
+        bool is_on_plane (const Point<3>& p) const
+        {
+            precision_t zero = A_ * p.x() + B_ * p.y() + C_ * p.z() + D_;
+
+            if (flush_to_zero (zero) == std::nullopt)
+                return true;
+
+            return false;
+        }
+
+        // min po from plane to given point
+        precision_t distance (const Point<3>& p) const
+        {
+            return std::abs (A_ * p.x() + B_ * p.y() + C_ * p.z() + D_);
+        }
+
+        Vector<3> normal() const
+        {
+            return Vector<3>{A_, B_, C_};
+        }
+};
+//_________________________________________________________________________________________________________________________________________//
+
+
+//_______________________________________________________LINE_2D___________________________________________________________________________//
+class Line2D
+{
+    // When line parallel OY k = NAN && b = -x;
+    private:
+        precision_t k_;
+        precision_t b_;
+
+    //_________________________________________________________________________________________________________________________________________//
+    public:
+        //  Constructor based on 2 points  //
+        explicit Line2D(Point<2> p_1, Point<2> p_2)
+        {
+            std::optional <std::pair<precision_t, precision_t>> coeffs = get_2Dline_coeffs (p_1, p_2);
+        
             if (coeffs == std::nullopt)
             {
-                // x = const
+                k_ = NAN;
+                b_ = -p_1.x();
                 return;
             }
 
             k_ = coeffs->first;
             b_ = coeffs->second;
         }
-
+        
         //  Constructor based on k b coefficients  //
-        explicit Line2D(double k_coef, double b_coef) : k_(k_coef), b_(b_coef)
-        {
-            point_one_({0, 0});
-            point_two_({0, 0});
+        explicit Line2D(precision_t k_coef, precision_t b_coef) : k_(k_coef), b_(b_coef) {}
 
-            do_zero (length_);
+        //  true -- bottom then line  //  false -- upper then line  //  nullopt if parallel OY  //  if on line - use another func for check in exern
+        std::optional<bool> is_below_the_line (const Point<2>& point) const
+        {
+            if (std::isnan(k_))
+                return std::nullopt;
+
+            precision_t y_on_line = k_ * point.x() + b_;
+
+            if (y_on_line < point.y())
+                return false;
+
+            return true;
         }
 
-        //  Destructor  //
-        ~Line2D() = default;
+        //  Check point on line  //
+        bool is_on_line (const Point<2>& point) const
+        {
+            if (std::isnan(k_))
+                return flush_to_zero (-b_ - point.x()) == std::nullopt;
+
+            precision_t y_on_line = k_ * point.x() + b_;
+
+            if (flush_to_zero (y_on_line - point.y()) == std::nullopt)
+                return true;
+
+            return false;
+        }
     //_________________________________________________________________________________________________________________________________________//
 };
 
-
-
-//________________________________________________Questions_Tasks__________________________________________________________________________//
-// func get len based on 2 points (not only for class need)
-// search k and b, by 2 poinrts is also universal
-
-
-// S_func (massive of points)
-// поиск площади по точкам: перегрузка в зависимости от количества переданных параметров площадь считается по разному
-// или площадь это сумма треугольничков которые через векторное произведение считаются
-
-// func
-// нахождение точек пересечения по двум прямым 
-// if есть бесконечное пересечение, тогда берем 2 точки лежащие на обоих прямых
-// (то есть берем последовательно 4 точки двух линий и проверяем лежит ли каждая на обеих прямых одновременно)
-
-
-// 1 - строим все прямые отдельных треугольников y=kx+b                                                        {        ро`        }
-// 2 - находим все точки пересечения разных прямых треугольников +delete лишние точки, лежащие дальше чем ро ( .------.------------.)
-//                                                                                                               ро
-// -> получаем массив точек: удаляем одинаковые
-// отправляем точки в функцию расчета площади
-//_________________________________________________________________________________________________________________________________________//
-
-
-template <is_Decard_dim TypeCoord, std::size_t Dimension>
-constexpr double distance (const Point<TypeCoord, Dimension>& p_1, 
-                           const Point<TypeCoord, Dimension>& p_2)
+constexpr std::optional <std::pair<precision_t, precision_t>> get_2Dline_coeffs (const Point<2>& p_1, 
+                                                                                 const Point<2>& p_2)
 {
-    double sum_sq{};
+    precision_t dx = p_2.x() - p_1.x();
+    precision_t dy = p_2.y() - p_1.y();
 
-    for (std::size_t i = 0; i < Dimension; ++i)
-    {
-        double diff = static_cast<double>(p_1[i]) - static_cast<double>(p_2[i]);
-        sum_sq = sum_sq + (diff * diff);
-    }
-
-    return std::sqrt(sum_sq);
-}
-
-
-template <is_Decard_dim TypeCoord> // k // // b //
-constexpr std::optional <std::pair<double, double>> get_line_coeffs (const Point<TypeCoord, 2>& p_1, 
-                                                                     const Point<TypeCoord, 2>& p_2)
-{
-    double dx = static_cast<double>(p_2.x()) - static_cast<double>(p_1.x());
-    double dy = static_cast<double>(p_2.y()) - static_cast<double>(p_1.y());
 
     if (std::abs(dx) < EPSILON_OF_ZERO)  // parallel OY
         return std::nullopt;
 
-    double k = dy / dx;
-    double b = static_cast<double>(p_1.y()) - k * static_cast<double>(p_1.x());
+    precision_t k = dy / dx;
+    precision_t b = p_1.y() - k * p_1.x();
 
     return std::pair{k, b};
 }
+//_________________________________________________________________________________________________________________________________________//

@@ -9,4 +9,4 @@ FLAGS = -O3 -D _DEBUG -ggdb3 -std=c++20 -Wall -Wextra -Weffc++ -Wmissing-declara
         -fsanitize=address,alignment,bool,bounds,enum,float-cast-overflow,float-divide-by-zero,integer-divide-by-zero,nonnull-attribute,null,return,returns-nonnull-attribute,shift,signed-integer-overflow,undefined,unreachable,vla-bound,vptr
 
 all:
-	g++ $(FLAGS) M_triangls.cpp -o app
+	g++ $(FLAGS) M_triangls.cpp
