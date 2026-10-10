@@ -22,7 +22,7 @@ concept is_Decard_dim = requires(T a, T b)
 
 //____________________________________________FAST_COMMANDS________________________________________________________________________________//
     // git add .
-    // git commit -m "do + rewrite some geomtry classes"
+    // git commit -m "upgrade Geometry + do wrappe for throw"
     // git push
 
     // git pull
@@ -62,7 +62,7 @@ concept is_Decard_dim = requires(T a, T b)
 #define ERROR_IN_FUN -1
 #define ALL_RIGHT     1
 
-enum errors_
+enum [[nodiscard]] errors_
 {
     memory_aloca    = 1,
     oversize_any    = 2,
@@ -75,15 +75,17 @@ enum errors_
     euqlid_ruined   = 9,
 };
 
+
 #ifdef DE_BUG_ON
-    #define AsserT(what_need, type_err, retern)                                               \
-            if(what_need) [[unlikely]]                                                         \
-            {                                                                                   \
-                std::cerr << "\n\nerror in line, " << __FILE__  << ":" << __LINE__ << ". Problem with:" << TO_str(type_err); \
-                return retern;                                                                    \
-            }
+    #define Th_row(what_need, ExceptionType, type_err, message) \
+        if (what_need) [[unlikely]] \
+        { \
+            std::string err_msg = std::string("\n[Error] ") + __FILE__ + ":" + std::to_string(__LINE__) + \
+                                            " | Type: " + TO_str(type_err) + " | Info: " + (message);   \
+            throw ExceptionType(err_msg); \
+        }
 #else 
-    #define AsserT(what_need, type_err, retern)
+    #define Th_row(what_need, ExceptionType, type_err, message)
 #endif     
 //_________________________________________________________________________________________________________________________________________//
 

@@ -16,25 +16,25 @@ class Point
     //_________________________________________________________________________________________________________________________________________//
     public:
 
-        constexpr       precision_t& x()       requires (Dimension >= 1) { return all_coords_[0]; }  // constexpr - compile-time opt +how inline
-        constexpr const precision_t& x() const requires (Dimension >= 1) { return all_coords_[0]; }  // const for save coords + const points
+        constexpr       precision_t& x()       noexcept requires (Dimension >= 1) { return all_coords_[0]; }  // constexpr - compile-time opt +how inline
+        constexpr const precision_t& x() const noexcept requires (Dimension >= 1) { return all_coords_[0]; }  // const for save coords + const points
 
-        constexpr       precision_t& y()       requires (Dimension >= 2) { return all_coords_[1]; }
-        constexpr const precision_t& y() const requires (Dimension >= 2) { return all_coords_[1]; }
+        constexpr       precision_t& y()       noexcept requires (Dimension >= 2) { return all_coords_[1]; }
+        constexpr const precision_t& y() const noexcept requires (Dimension >= 2) { return all_coords_[1]; }
 
-        constexpr       precision_t& z()       requires (Dimension >= 3) { return all_coords_[2]; }
-        constexpr const precision_t& z() const requires (Dimension >= 3) { return all_coords_[2]; }
+        constexpr       precision_t& z()       noexcept requires (Dimension >= 3) { return all_coords_[2]; }
+        constexpr const precision_t& z() const noexcept requires (Dimension >= 3) { return all_coords_[2]; }
 
-        constexpr       precision_t& operator[](std::size_t index)       { return all_coords_[index]; }
-        constexpr const precision_t& operator[](std::size_t index) const { return all_coords_[index]; }
+        constexpr       precision_t& operator[](std::size_t index)       noexcept { return all_coords_[index]; }
+        constexpr const precision_t& operator[](std::size_t index) const noexcept { return all_coords_[index]; }
 
     //_________________________________________________________________________________________________________________________________________//
         //  D  //  Constructor for comfortable Zero point
-        explicit constexpr Point() = default;
+        explicit constexpr Point() noexcept = default;
 
         //  0  //  Constructor
         template <is_Decard_dim TypeCoord>
-        explicit constexpr Point(std::initializer_list <TypeCoord> list)  // explicit is protection from implicit cast
+        explicit constexpr Point(std::initializer_list <TypeCoord> list) noexcept // explicit is protection from implicit cast
         {
             size_t i = 0;
             for (const TypeCoord& val : list)
@@ -44,7 +44,7 @@ class Point
     //_________________________________________________________________________________________________________________________________________//
 
         //  ==  //
-        constexpr bool operator==(const Point<Dimension>& other) const
+        bool operator==(const Point<Dimension>& other) const noexcept
         {
             for (std::size_t i = 0; i < Dimension; i++)
                 if (flush_to_zero (all_coords_[i] - other[i]) != std::nullopt)
@@ -54,7 +54,7 @@ class Point
         }
 
         //  -point  //
-        constexpr Point<Dimension> operator-() const
+        constexpr Point<Dimension> operator-() const noexcept
         {
             Point<Dimension> result{};
             for (std::size_t i = 0; i < Dimension; i++)
@@ -66,7 +66,7 @@ class Point
 //_________________________________________________________________________________________________________________________________________//
         //  Distance between points  //
         template <std::size_t Dimension>
-        constexpr precision_t distance_bw_p (const Point<Dimension>& p_1, const Point<Dimension>& p_2)
+        constexpr precision_t distance_bw_p (const Point<Dimension>& p_1, const Point<Dimension>& p_2) noexcept
         {
             precision_t sum_sq{};
 
@@ -81,7 +81,7 @@ class Point
 
         //  Square of istance between points -- use for optimizations  //
         template <std::size_t Dimension>
-        constexpr precision_t square_of_distance_bw_p (const Point<Dimension>& p_1, const Point<Dimension>& p_2)
+        constexpr precision_t square_of_distance_bw_p (const Point<Dimension>& p_1, const Point<Dimension>& p_2) noexcept
         {
             precision_t sum_sq{};
 
@@ -103,7 +103,7 @@ class Vector : public Point<Dimension>
         using Point<Dimension>::Point;  //  For use constructors of Point
 
         //  ADD  //
-        constexpr Vector<Dimension> operator+(const Vector<Dimension>& other) const
+        constexpr Vector<Dimension> operator+(const Vector<Dimension>& other) const noexcept
         {
             Vector result = *this;
             for (std::size_t i = 0; i < Dimension; i++)
@@ -113,7 +113,7 @@ class Vector : public Point<Dimension>
         }
 
         //  -vector  //
-        constexpr Vector<Dimension> operator-() const
+        constexpr Vector<Dimension> operator-() const noexcept
         {
             Vector<Dimension> result{};
             for (std::size_t i = 0; i < Dimension; i++)
@@ -123,7 +123,7 @@ class Vector : public Point<Dimension>
         }
 
         //  Dot Product  //  (v1 * v2)
-        constexpr precision_t dot (const Vector<Dimension>& other) const
+        constexpr precision_t dot (const Vector<Dimension>& other) const noexcept
         {
             precision_t sum{};
             for (std::size_t i = 0; i < Dimension; i++)
@@ -133,7 +133,7 @@ class Vector : public Point<Dimension>
         }
 
         //  Vector product (only 3D)  //  [v1 x v2]
-        constexpr Vector<3> operator^(const Vector<3>& other) const requires (Dimension == 3)
+        constexpr Vector<3> operator^(const Vector<3>& other) const requires (Dimension == 3) noexcept
         {
             return Vector<3>{
                                 this->y() * other.z() - this->z() * other.y(),
@@ -143,13 +143,13 @@ class Vector : public Point<Dimension>
         }
 
         //  Lenght  //
-        constexpr precision_t length () const
+        constexpr precision_t length () const noexcept
         {
             return std::sqrt(dot(*this));
         }
 
         //  *  scalar  //
-        constexpr Vector<Dimension> operator*(precision_t scalar) const 
+        constexpr Vector<Dimension> operator*(precision_t scalar) const noexcept
         {
             Vector result = *this;
             for (std::size_t i = 0; i < Dimension; i++)
@@ -161,14 +161,14 @@ class Vector : public Point<Dimension>
 //_________________________________________________________________________________________________________________________________________//
         //  scalar *  //
         template <std::size_t Dimension>
-        constexpr Vector<Dimension> operator*(precision_t scalar, const Vector<Dimension>& vector) 
+        constexpr Vector<Dimension> operator*(precision_t scalar, const Vector<Dimension>& vector) noexcept
         {
             return vector * scalar;
         }
 
         //  SUB  //
         template <std::size_t Dimension>
-        constexpr Vector<Dimension> operator-(const Point<Dimension>& left_p, const Point<Dimension>& right_p)
+        constexpr Vector<Dimension> operator-(const Point<Dimension>& left_p, const Point<Dimension>& right_p) noexcept
         {
             Vector result{};
             for (std::size_t i = 0; i < Dimension; i++)
@@ -179,7 +179,7 @@ class Vector : public Point<Dimension>
 
         //  Point + Vector  //
         template <std::size_t Dimension>
-        constexpr Point<Dimension> operator+(const Point<Dimension>& point, const Vector<Dimension>& vector)
+        constexpr Point<Dimension> operator+(const Point<Dimension>& point, const Vector<Dimension>& vector) noexcept
         {
             Point<Dimension> result{};
             for (std::size_t i = 0; i < Dimension; i++)
@@ -190,7 +190,7 @@ class Vector : public Point<Dimension>
 
         //  Vector + Point  //
         template <std::size_t Dimension>
-        constexpr Point<Dimension> operator+(const Vector<Dimension>& vector, const Point<Dimension>& point)
+        constexpr Point<Dimension> operator+(const Vector<Dimension>& vector, const Point<Dimension>& point) noexcept
         {
             return point + vector;
         }

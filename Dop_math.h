@@ -15,7 +15,7 @@ constexpr void do_zero(T& val)
 
 
 template <typename Value>
-std::optional<Value> flush_to_zero(Value dx)  // not constexpr supported
+std::optional<Value> flush_to_zero(Value dx) noexcept  // not constexpr supported
 {
     if (std::abs(dx) < EPSILON_OF_ZERO)
         return std::nullopt;
