@@ -6,3 +6,7 @@ a.out.dSYM
 .vscode
 app
 app.dSYM
+build
+_out_puts
+.cache
+.clangd

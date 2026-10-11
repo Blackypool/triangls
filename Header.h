@@ -1,39 +1,6 @@
 #ifndef MAIN_HEADER_H
 #define MAIN_HEADER_H
 
-
-#define EPSILON_OF_ZERO 1e-4
-#define DE_BUG_ON
-#define TO_str(x) #x
-
-
-//_________________________________________EXCLUSIVELY_FOR_PROJECT_________________________________________________________________________//
-using precision_t = double;
-
-template <typename T>
-concept is_Decard_dim = requires(T a, T b)
-{
-    a + b;
-    {a != b} -> std::convertible_to<bool>;
-};
-//_________________________________________________________________________________________________________________________________________//
-
-
-
-//____________________________________________FAST_COMMANDS________________________________________________________________________________//
-    // git add .
-    // git commit -m "upgrade Geometry + do wrappe for throw"
-    // git push
-
-    // git pull
-
-    // git fetch origin // only download
-    // git switch Name_of_branch
-    // git branch
-//_________________________________________________________________________________________________________________________________________//
-
-
-
 //______________________________________________BIBLIOTECS_________________________________________________________________________________//
 #include <algorithm>
 #include <iostream>
@@ -57,12 +24,53 @@ concept is_Decard_dim = requires(T a, T b)
 //_________________________________________________________________________________________________________________________________________//
 
 
+//_________________________________________EXCLUSIVELY_FOR_PROJECT_________________________________________________________________________//
+#define DE_BUG_ON
 
-//________________________________________________DEBUGS___________________________________________________________________________________//
+#define SPHERE_SHELL
+#define BOX_SHELL
+#define PLANE_OF_TRIANGL
+
+using precision_t = float;
+inline constexpr std::size_t GEOM_ALIGNMENT = 16;
+
+template <typename T>
+concept is_Decard_dim = requires(T a, T b)
+{
+    a + b;
+    {a != b} -> std::convertible_to<bool>;
+};
+//_________________________________________________________________________________________________________________________________________//
+
+
+//____________________________________________FAST_COMMANDS________________________________________________________________________________//
+    // rm -rf build
+    // cmake -S . -B build -G Ninja.        --  -S (source) . == where CMake.txt
+    //                                      --  -B build == where save generated files (in build folder)
+    //                                      --  -G (Generator) -- performing instrument
+    // cmake --build build
+
+    // git add .
+    // git commit -m "add CMake + moduls"
+    // git push
+
+    // git pull
+
+    // git fetch origin // only download
+    // git switch Name_of_branch
+    // git branch
+//_________________________________________________________________________________________________________________________________________//
+
+
+//________________________________________________APPARAT__________________________________________________________________________________//
+#define EPSILON_OF_ZERO 1e-4
+#define TO_str(x) #x
+
+
 #define ERROR_IN_FUN -1
 #define ALL_RIGHT     1
 
-enum [[nodiscard]] errors_
+enum [[nodiscard]] errors_  // nodiscard -- no ignor result of func w\ this enum
 {
     memory_aloca    = 1,
     oversize_any    = 2,
@@ -93,7 +101,6 @@ enum [[nodiscard]] errors_
 
 //______________________________________________HEADERS_OF_ANOTHER_________________________________________________________________________//
 #include "Dop_math.h"
-#include "Point.h"
 //_________________________________________________________________________________________________________________________________________//
 
 

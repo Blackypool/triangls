@@ -1,14 +1,15 @@
-#ifndef UNIVERSAL_MULTI_DIMENSION_CLASS_POINT_AND_VECTOR
-#define UNIVERSAL_MULTI_DIMENSION_CLASS_POINT_AND_VECTOR
+module;
+#include "../Header.h"
 
-#include "Header.h"
+export module geometry:point_v;
 
+export{
+//________________________________________________________Point___________________________________________________________________________//
 template <std::size_t Dimension>
 class Vector;
 
-//_________________________________________________________________________________________________________________________________________//
 template <std::size_t Dimension>
-class Point
+class alignas(GEOM_ALIGNMENT) Point
 {
     protected:  // derived is see this section
         precision_t all_coords_[Dimension]{};  // know on pre-proc
@@ -97,7 +98,7 @@ class Point
 
 
 template <std::size_t Dimension>
-class Vector : public Point<Dimension>
+class alignas(GEOM_ALIGNMENT) Vector : public Point<Dimension>
 {
     public:
         using Point<Dimension>::Point;  //  For use constructors of Point
@@ -105,7 +106,7 @@ class Vector : public Point<Dimension>
         //  ADD  //
         constexpr Vector<Dimension> operator+(const Vector<Dimension>& other) const noexcept
         {
-            Vector result = *this;
+            Vector<Dimension> result = *this;
             for (std::size_t i = 0; i < Dimension; i++)
                 result[i] += other[i];
 
@@ -133,7 +134,7 @@ class Vector : public Point<Dimension>
         }
 
         //  Vector product (only 3D)  //  [v1 x v2]
-        constexpr Vector<3> operator^(const Vector<3>& other) const requires (Dimension == 3) noexcept
+        constexpr Vector<3> operator^(const Vector<3>& other) const noexcept requires (Dimension == 3)
         {
             return Vector<3>{
                                 this->y() * other.z() - this->z() * other.y(),
@@ -151,7 +152,7 @@ class Vector : public Point<Dimension>
         //  *  scalar  //
         constexpr Vector<Dimension> operator*(precision_t scalar) const noexcept
         {
-            Vector result = *this;
+            Vector<Dimension> result = *this;
             for (std::size_t i = 0; i < Dimension; i++)
                 result[i] *= scalar;
 
@@ -170,7 +171,7 @@ class Vector : public Point<Dimension>
         template <std::size_t Dimension>
         constexpr Vector<Dimension> operator-(const Point<Dimension>& left_p, const Point<Dimension>& right_p) noexcept
         {
-            Vector result{};
+            Vector<Dimension> result{};
             for (std::size_t i = 0; i < Dimension; i++)
                 result[i] = left_p[i] - right_p[i];
 
@@ -207,6 +208,4 @@ class Vector : public Point<Dimension>
             return os << "}";
         }
 //_________________________________________________________________________________________________________________________________________//
-
-
-#endif // UNIVERSAL_MULTI_DIMENSION_CLASS_POINT_AND_VECTOR
+}
