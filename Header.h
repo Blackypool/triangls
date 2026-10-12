@@ -25,14 +25,21 @@
 
 
 //_____________________________________________OPTIMIZATIONS_______________________________________________________________________________//
-#define PLANE_OF_TRIANGL
+#define PLANE_OF_TRIANGL    // Should the plane be stored in the triangle class?
 
-#define SPHERE_SHELL
-#define BOX_SHELL
+#define MOLLER_ALG          // Using the Moeller algorithm to accurately check the intersection
+
+#define SUM_AREA_for_check_point_in_triangel  // Checking whether a point lies within a triangle by summing the areas
+
+#define AABB_SHELL          // Using AABB for broad check the intersection 
+
+#ifndef AABB_SHELL
+    #define SPHERE_SHELL    // Using Sphere around the triangle for broad check the intersection 
+#endif
 
 #define EPSILON_OF_ZERO 1e-4
 using precision_t = float;
-inline constexpr std::size_t GEOM_ALIGNMENT = 16;
+inline constexpr std::size_t GEOM_ALIGNMENT = 16;  // alignment of basic geometry structures
 //_________________________________________________________________________________________________________________________________________//
 
 
@@ -48,17 +55,17 @@ concept is_Decard_dim = requires(T a, T b)
 
 //____________________________________________FAST_COMMANDS________________________________________________________________________________//
     #define DE_BUG_ON
-
+//_______________________________
     // rm -rf build
-    // cmake -S . -B build -G Ninja.        --  -S (source) . == where CMake.txt
+    // cmake -S . -B build -G Ninja         --  -S (source) . == where CMake.txt
     //                                      --  -B build == where save generated files (in build folder)
     //                                      --  -G (Generator) -- performing instrument
     // cmake --build build
-
+//_______________________________
     // git add .
-    // git commit -m "rework flush_... + need c++23 for more constexpr"
+    // git commit -m "add 2d intersection"
     // git push
-
+//_______________________________
     // git pull
 
     // git fetch origin // only download

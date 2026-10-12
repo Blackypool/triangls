@@ -87,7 +87,7 @@ class alignas(GEOM_ALIGNMENT) Plane3D
 
         // T/T  -- absolute equival
         // T/F  -- parallel              //  compare_planes  //
-        // F/.. -- mismatch
+        // F/F  -- mismatch
         constexpr std::pair<bool, bool> compare_planes (const Plane3D& sec_plane) const noexcept
         {
             if (is_nearly_zero(A_ - sec_plane.A_) && 
@@ -195,7 +195,8 @@ class alignas(GEOM_ALIGNMENT) Circle
             radius_ = std::sqrt(radius2_);
         }
 
-        constexpr bool is_intersection (const Circle& other) const noexcept // work as sphere
+        //  is_intersection
+        constexpr bool operator^(const Circle& other) const noexcept // work as sphere
         {
             precision_t dist = square_of_distance_bw_p (centr_, other.centr_);
 
@@ -210,7 +211,7 @@ class alignas(GEOM_ALIGNMENT) Circle
 //_________________________________________________________________________________________________________________________________________//
 
 
-//______________________________________________________LINE_2D___________________________________________________________________________//
+//______________________________________________________LINE_2D____________________________________________________________________________//
 constexpr std::optional <std::pair<precision_t, precision_t>> get_2Dline_coeffs (const Point<2>& p_1, 
                                                                                  const Point<2>& p_2) noexcept
 {
@@ -286,6 +287,14 @@ class alignas(GEOM_ALIGNMENT) Line2D
 //_________________________________________________________________________________________________________________________________________//
 
 
+//______________________________________________________LINE_3D____________________________________________________________________________//
+class Line3D
+{
+
+};
+//_________________________________________________________________________________________________________________________________________//
+
+
 //_____________________________________________________TRIANGL_____________________________________________________________________________//
 template <std::size_t Dimension>
 class Triangl
@@ -297,7 +306,7 @@ class Triangl
             Plane3D plane_of_{};  // The plane in which the triangle lies
         #endif
 
-        #ifdef BOX_SHELL
+        #ifdef AABB_SHELL
             Parallelepiped around_box_{};  // Parallelepiped HIT_BOX
         #endif
 
@@ -341,7 +350,7 @@ class Triangl
                         plane_of_ = Plane3D{p_A, p_B, p_C};  // can except!!
                     #endif
 
-                    #ifdef BOX_SHELL
+                    #ifdef AABB_SHELL
                         Point<3> min_p{};
                         Point<3> max_p{};
 
@@ -378,6 +387,14 @@ class Triangl
             constexpr const Plane3D get_plane ()  const noexcept {return plane_of_;}
             constexpr Vector<3> normal()          const noexcept {return plane_of_.normal();}
         #endif
-    };
+
+        #ifdef AABB_SHELL
+            constexpr const Parallelepiped get_AABB () const noexcept {return around_box_;}
+        #endif
+
+        #ifdef SPHERE_SHELL
+            constexpr const Circle<Dimension> get_sphere () const noexcept {return around_circle_;}
+        #endif
+};
 //_________________________________________________________________________________________________________________________________________//
 }
