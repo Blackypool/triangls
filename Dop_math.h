@@ -13,14 +13,10 @@ constexpr void do_zero(T& val)
         val = T{};
 }
 
-
 template <typename Value>
-std::optional<Value> flush_to_zero(Value dx) noexcept  // not constexpr supported
+constexpr bool is_nearly_zero(const Value& dx, const Value& eps = EPSILON_OF_ZERO) noexcept
 {
-    if (std::abs(dx) < EPSILON_OF_ZERO)
-        return std::nullopt;
-                          
-    return dx;
+    return (dx > -eps) && (dx < eps);
 }
 
 

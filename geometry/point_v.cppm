@@ -45,10 +45,10 @@ class alignas(GEOM_ALIGNMENT) Point
     //_________________________________________________________________________________________________________________________________________//
 
         //  ==  //
-        bool operator==(const Point<Dimension>& other) const noexcept
+        constexpr bool operator==(const Point<Dimension>& other) const noexcept
         {
             for (std::size_t i = 0; i < Dimension; i++)
-                if (flush_to_zero (all_coords_[i] - other[i]) != std::nullopt)
+                if (!is_nearly_zero (all_coords_[i] - other[i]))
                     return false;
 
             return true;

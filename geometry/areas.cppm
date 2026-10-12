@@ -13,23 +13,23 @@ class alignas(GEOM_ALIGNMENT) Plane3D
     private:
         precision_t A_, B_, C_, D_;
 
-        void need_negative_li() noexcept
+        constexpr void need_negative_li() noexcept
         {
-            if (flush_to_zero(A_) != std::nullopt)
+            if (!is_nearly_zero(A_))
                 if (A_ < 0)
                 {
                     negative_all();
                     return;
                 }
 
-            if (flush_to_zero(B_) != std::nullopt)
+            if (!is_nearly_zero(B_))
                 if (B_ < 0)
                 {
                     negative_all();
                     return;
                 }
 
-            if (flush_to_zero(C_) != std::nullopt)
+            if (!is_nearly_zero(C_))
                 if (C_ < 0)
                 {
                     negative_all();
@@ -37,7 +37,7 @@ class alignas(GEOM_ALIGNMENT) Plane3D
                 }
         }
 
-        void negative_all() noexcept
+        constexpr void negative_all() noexcept
         {
             A_ *= -1;
             B_ *= -1;
@@ -45,10 +45,10 @@ class alignas(GEOM_ALIGNMENT) Plane3D
             D_ *= -1;
         }
 
-        void default_construct_plane()  //  Plane on 4 point  //
+        constexpr void default_construct_plane()  //  Plane on 4 point  //
         {
-            if (flush_to_zero(A_) == std::nullopt && flush_to_zero(B_) == std::nullopt && flush_to_zero(C_) == std::nullopt)    
-                Th_row(flush_to_zero(D_) != std::nullopt, std::invalid_argument, euqlid_ruined, "wrong D coeff in full zero A, B, C\n");
+            if (is_nearly_zero(A_) && is_nearly_zero(B_) && is_nearly_zero(C_))    
+                Th_row(!is_nearly_zero(D_), std::invalid_argument, euqlid_ruined, "wrong D coeff in full zero A, B, C\n");
 
             precision_t normilize = std::sqrt (A_*A_ + B_*B_ + C_*C_);
 
@@ -63,10 +63,10 @@ class alignas(GEOM_ALIGNMENT) Plane3D
     //_________________________________________________________________________________________________________________________________________//
     public:
         //  Zero plane  //
-        explicit Plane3D() noexcept = default;
+        constexpr explicit Plane3D() noexcept = default;
 
         //  Plane on 3 point  //
-        explicit Plane3D(const Point<3>& p1, const Point<3>& p2, const Point<3>& p3)
+        constexpr explicit Plane3D(const Point<3>& p1, const Point<3>& p2, const Point<3>& p3)
         {
             Vector<3> normal = (p2 - p1) ^ (p3 - p1);
 
@@ -80,7 +80,7 @@ class alignas(GEOM_ALIGNMENT) Plane3D
         }
 
         //  Plane on 4 point  //
-        explicit Plane3D(const precision_t A_A, const precision_t B_B, const precision_t C_C, const precision_t D_D) : A_(A_A), B_(B_B), C_(C_C), D_(D_D)
+        constexpr explicit Plane3D(const precision_t A_A, const precision_t B_B, const precision_t C_C, const precision_t D_D) : A_(A_A), B_(B_B), C_(C_C), D_(D_D)
         {
             default_construct_plane();
         }
@@ -88,13 +88,13 @@ class alignas(GEOM_ALIGNMENT) Plane3D
         // T/T  -- absolute equival
         // T/F  -- parallel              //  compare_planes  //
         // F/.. -- mismatch
-        std::pair<bool, bool> compare_planes (const Plane3D& sec_plane) const noexcept
+        constexpr std::pair<bool, bool> compare_planes (const Plane3D& sec_plane) const noexcept
         {
-            if (flush_to_zero(A_ - sec_plane.A_) == std::nullopt && 
-                flush_to_zero(B_ - sec_plane.B_) == std::nullopt && 
-                flush_to_zero(C_ - sec_plane.C_) == std::nullopt    )
+            if (is_nearly_zero(A_ - sec_plane.A_) && 
+                is_nearly_zero(B_ - sec_plane.B_) && 
+                is_nearly_zero(C_ - sec_plane.C_)   )
             {
-                if (flush_to_zero(D_ - sec_plane.D_) == std::nullopt)
+                if (is_nearly_zero(D_ - sec_plane.D_))
                     return std::pair{true, true};  // equival
 
                 return std::pair{true, false};  // parallel
@@ -104,20 +104,20 @@ class alignas(GEOM_ALIGNMENT) Plane3D
         }
 
         //  is point lie on plane
-        bool is_on_plane (const Point<3>& p) const noexcept
+        constexpr bool is_on_plane (const Point<3>& p) const noexcept
         {
             precision_t zero = A_ * p.x() + B_ * p.y() + C_ * p.z() + D_;
 
-            if (flush_to_zero (zero) == std::nullopt)
+            if (is_nearly_zero (zero))
                 return true;
 
             return false;
         }
 
         // min po from plane to given point
-        precision_t distance (const Point<3>& p) const noexcept
+        constexpr precision_t distance (const Point<3>& p) const noexcept
         {
-            return std::abs (A_ * p.x() + B_ * p.y() + C_ * p.z() + D_);
+            return (A_ * p.x() + B_ * p.y() + C_ * p.z() + D_);
         }
 
         // ret vector of normal
@@ -167,14 +167,14 @@ class alignas(GEOM_ALIGNMENT) Circle
     //_________________________________________________________________________________________________________________________________________//
     public:
         //  Zero constructor  //
-        explicit Circle() noexcept = default;
+        constexpr explicit Circle() noexcept = default;
 
         //  point + radius  //
-        explicit Circle(Point<Dimension> heart, precision_t diameter_in_half) noexcept : 
+        constexpr explicit Circle(Point<Dimension> heart, precision_t diameter_in_half) noexcept : 
         centr_(heart), radius_(diameter_in_half), radius2_(diameter_in_half * diameter_in_half) {}
 
         //  3 Points 3D  //
-        explicit Circle(const Point<Dimension>& A, const Point<Dimension>& B, const Point<Dimension>& C) noexcept requires (Dimension == 3)
+        constexpr explicit Circle(const Point<Dimension>& A, const Point<Dimension>& B, const Point<Dimension>& C) noexcept requires (Dimension == 3)
         {
             Vector<Dimension> U = B - A;
             precision_t U2 = U * U;
@@ -195,13 +195,13 @@ class alignas(GEOM_ALIGNMENT) Circle
             radius_ = std::sqrt(radius2_);
         }
 
-        bool is_intersection (const Circle& other) const noexcept // work as sphere
+        constexpr bool is_intersection (const Circle& other) const noexcept // work as sphere
         {
             precision_t dist = square_of_distance_bw_p (centr_, other.centr_);
 
             precision_t touch_dist = radius2_ + (2 * radius_ * other.radius_) + other.radius2_;
 
-            if ((dist - touch_dist) <= EPSILON_OF_ZERO)
+            if ((dist - touch_dist) <= EPSILON_OF_ZERO)  // need sign
                 return true;
 
             return false;
@@ -218,7 +218,7 @@ constexpr std::optional <std::pair<precision_t, precision_t>> get_2Dline_coeffs 
     precision_t dy = p_2.y() - p_1.y();
 
 
-    if (std::abs(dx) < EPSILON_OF_ZERO)  // parallel OY
+    if (is_nearly_zero(dx))  // parallel OY
         return std::nullopt;
 
     precision_t k = dy / dx;
@@ -236,7 +236,7 @@ class alignas(GEOM_ALIGNMENT) Line2D
     //_________________________________________________________________________________________________________________________________________//
     public:
         //  Constructor based on 2 points  //
-        explicit Line2D(Point<2> p_1, Point<2> p_2) noexcept
+        constexpr explicit Line2D(Point<2> p_1, Point<2> p_2) noexcept
         {
             std::optional <std::pair<precision_t, precision_t>> coeffs = get_2Dline_coeffs (p_1, p_2);
         
@@ -252,10 +252,10 @@ class alignas(GEOM_ALIGNMENT) Line2D
         }
         
         //  Constructor based on k b coefficients  //
-        explicit Line2D(precision_t k_coef, precision_t b_coef) noexcept : k_(k_coef), b_(b_coef) {}
+        constexpr explicit Line2D(precision_t k_coef, precision_t b_coef) noexcept : k_(k_coef), b_(b_coef) {}
 
         //  true -- bottom then line  //  false -- upper then line  //  nullopt if parallel OY  //  if on line - use another func for check in exern
-        std::optional<bool> is_below_the_line (const Point<2>& point) const noexcept
+        constexpr std::optional<bool> is_below_the_line (const Point<2>& point) const noexcept
         {
             if (std::isnan(k_))
                 return std::nullopt;
@@ -269,14 +269,14 @@ class alignas(GEOM_ALIGNMENT) Line2D
         }
 
         //  Check point on line  //
-        bool is_on_line (const Point<2>& point) const noexcept
+        constexpr bool is_on_line (const Point<2>& point) const noexcept
         {
             if (std::isnan(k_))
-                return flush_to_zero (-b_ - point.x()) == std::nullopt;
+                return is_nearly_zero (-b_ - point.x());
 
             precision_t y_on_line = k_ * point.x() + b_;
 
-            if (flush_to_zero (y_on_line - point.y()) == std::nullopt)
+            if (is_nearly_zero (y_on_line - point.y()))
                 return true;
 
             return false;
@@ -305,7 +305,7 @@ class Triangl
             Circle<Dimension> around_circle_{};  // Sphere HIT_BOX
         #endif
 
-        bool is_triangle_in_3D (Point<3> A, Point<3> B, Point<3> C) noexcept requires (Dimension == 3)
+        constexpr bool is_triangle_in_3D (Point<3> A, Point<3> B, Point<3> C) noexcept requires (Dimension == 3)
         {
             Vector<Dimension> U = B - A;
             Vector<Dimension> V = C - A;
@@ -313,13 +313,13 @@ class Triangl
             Vector<Dimension> n = U ^ V;  // [U x V]
             precision_t n2 = n * n;
 
-            if (flush_to_zero (n2) == std::nullopt)
+            if (is_nearly_zero (n2))
                 return false;
 
             return true;  // all good
         }
 
-        bool is_triangle_in_2D (Point<2> A, Point<2> B, Point<2> C) noexcept requires (Dimension == 2)
+        constexpr bool is_triangle_in_2D (Point<2> A, Point<2> B, Point<2> C) noexcept requires (Dimension == 2)
         {
             Line2D line(A, B);
             if (line.is_on_line(C))
@@ -330,8 +330,8 @@ class Triangl
 
     //_________________________________________________________________________________________________________________________________________//
     public:
-        explicit Triangl() noexcept requires (Dimension > 1) = default;
-        explicit Triangl(const Point<Dimension> p_A, const Point<Dimension> p_B, const Point<Dimension> p_C) requires (Dimension > 1) : 
+        constexpr explicit Triangl() noexcept requires (Dimension > 1) = default;
+        constexpr explicit Triangl(const Point<Dimension> p_A, const Point<Dimension> p_B, const Point<Dimension> p_C) requires (Dimension > 1) : 
                                    point_A_(p_A), point_B_(p_B), point_C_(p_C)
         {
             if constexpr (Dimension == 3)
@@ -370,12 +370,14 @@ class Triangl
             throw std::invalid_argument("triangle is unreal");
         }                            
 
-        constexpr Vector<3> normal() const noexcept requires (Dimension == 3)
-        {
-            #ifdef PLANE_OF_TRIANGL
-                return plane_of_.normal();
-            #endif
-        }
-};
+        constexpr const Point<Dimension> get_A () const noexcept {return point_A_;}
+        constexpr const Point<Dimension> get_B () const noexcept {return point_B_;}
+        constexpr const Point<Dimension> get_C () const noexcept {return point_C_;}
+
+        #ifdef PLANE_OF_TRIANGL
+            constexpr const Plane3D get_plane ()  const noexcept {return plane_of_;}
+            constexpr Vector<3> normal()          const noexcept {return plane_of_.normal();}
+        #endif
+    };
 //_________________________________________________________________________________________________________________________________________//
 }

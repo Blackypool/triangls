@@ -24,16 +24,19 @@
 //_________________________________________________________________________________________________________________________________________//
 
 
-//_________________________________________EXCLUSIVELY_FOR_PROJECT_________________________________________________________________________//
-#define DE_BUG_ON
+//_____________________________________________OPTIMIZATIONS_______________________________________________________________________________//
+#define PLANE_OF_TRIANGL
 
 #define SPHERE_SHELL
 #define BOX_SHELL
-#define PLANE_OF_TRIANGL
 
+#define EPSILON_OF_ZERO 1e-4
 using precision_t = float;
 inline constexpr std::size_t GEOM_ALIGNMENT = 16;
+//_________________________________________________________________________________________________________________________________________//
 
+
+//_________________________________________EXCLUSIVELY_FOR_PROJECT_________________________________________________________________________//
 template <typename T>
 concept is_Decard_dim = requires(T a, T b)
 {
@@ -44,6 +47,8 @@ concept is_Decard_dim = requires(T a, T b)
 
 
 //____________________________________________FAST_COMMANDS________________________________________________________________________________//
+    #define DE_BUG_ON
+
     // rm -rf build
     // cmake -S . -B build -G Ninja.        --  -S (source) . == where CMake.txt
     //                                      --  -B build == where save generated files (in build folder)
@@ -51,7 +56,7 @@ concept is_Decard_dim = requires(T a, T b)
     // cmake --build build
 
     // git add .
-    // git commit -m "add CMake + moduls"
+    // git commit -m "rework flush_... + need c++23 for more constexpr"
     // git push
 
     // git pull
@@ -63,7 +68,6 @@ concept is_Decard_dim = requires(T a, T b)
 
 
 //________________________________________________APPARAT__________________________________________________________________________________//
-#define EPSILON_OF_ZERO 1e-4
 #define TO_str(x) #x
 
 
