@@ -64,7 +64,7 @@ concept is_Decard_dim = requires(T a, T b)
     // cmake --build build
 //_______________________________
     // git add .
-    // git commit -m "upgrade Cmake + do tests"
+    // git commit -m "add source for generating tests"
     // git push
 //_______________________________
     // git pull

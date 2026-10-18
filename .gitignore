@@ -16,5 +16,6 @@ a.out.dSYM
 
 # tests
 Cooked_tests.cpp
-*.stl
 *.csv
+*.stl
+!Grogu.stl
