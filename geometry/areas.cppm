@@ -1,5 +1,5 @@
 module;
-#include "../Header.h"
+#include "Header.h"
 
 export module geometry:areas;
 
@@ -47,7 +47,7 @@ class alignas(GEOM_ALIGNMENT) Plane3D
 
         constexpr void default_construct_plane()  //  Plane on 4 point  //
         {
-            if (is_nearly_zero(A_) && is_nearly_zero(B_) && is_nearly_zero(C_))    
+            if (is_nearly_zero(A_) && is_nearly_zero(B_) && is_nearly_zero(C_))  [[unlikely]]
                 Th_row(!is_nearly_zero(D_), std::invalid_argument, euqlid_ruined, "wrong D coeff in full zero A, B, C\n");
 
             precision_t normilize = std::sqrt (A_*A_ + B_*B_ + C_*C_);
@@ -218,8 +218,7 @@ constexpr std::optional <std::pair<precision_t, precision_t>> get_2Dline_coeffs 
     precision_t dx = p_2.x() - p_1.x();
     precision_t dy = p_2.y() - p_1.y();
 
-
-    if (is_nearly_zero(dx))  // parallel OY
+    if (is_nearly_zero(dx))  [[unlikely]] // parallel OY
         return std::nullopt;
 
     precision_t k = dy / dx;
@@ -241,7 +240,7 @@ class alignas(GEOM_ALIGNMENT) Line2D
         {
             std::optional <std::pair<precision_t, precision_t>> coeffs = get_2Dline_coeffs (p_1, p_2);
         
-            if (coeffs == std::nullopt)
+            if (coeffs == std::nullopt)  [[unlikely]]
             {
                 k_ = NAN;
                 b_ = -p_1.x();
@@ -258,7 +257,7 @@ class alignas(GEOM_ALIGNMENT) Line2D
         //  true -- bottom then line  //  false -- upper then line  //  nullopt if parallel OY  //  if on line - use another func for check in exern
         constexpr std::optional<bool> is_below_the_line (const Point<2>& point) const noexcept
         {
-            if (std::isnan(k_))
+            if (std::isnan(k_))  [[unlikely]]
                 return std::nullopt;
 
             precision_t y_on_line = k_ * point.x() + b_;
@@ -272,7 +271,7 @@ class alignas(GEOM_ALIGNMENT) Line2D
         //  Check point on line  //
         constexpr bool is_on_line (const Point<2>& point) const noexcept
         {
-            if (std::isnan(k_))
+            if (std::isnan(k_))  [[unlikely]]
                 return is_nearly_zero (-b_ - point.x());
 
             precision_t y_on_line = k_ * point.x() + b_;
@@ -322,7 +321,7 @@ class Triangl
             Vector<Dimension> n = U ^ V;  // [U x V]
             precision_t n2 = n * n;
 
-            if (is_nearly_zero (n2))
+            if (is_nearly_zero (n2))  [[unlikely]]
                 return false;
 
             return true;  // all good
@@ -331,7 +330,7 @@ class Triangl
         constexpr bool is_triangle_in_2D (Point<2> A, Point<2> B, Point<2> C) noexcept requires (Dimension == 2)
         {
             Line2D line(A, B);
-            if (line.is_on_line(C))
+            if (line.is_on_line(C))  [[unlikely]]
                 return false;
 
             return true;  // all good
@@ -339,12 +338,12 @@ class Triangl
 
     //_________________________________________________________________________________________________________________________________________//
     public:
-        constexpr explicit Triangl() noexcept requires (Dimension > 1) = default;
-        constexpr explicit Triangl(const Point<Dimension> p_A, const Point<Dimension> p_B, const Point<Dimension> p_C) requires (Dimension > 1) : 
+        constexpr Triangl() noexcept requires (Dimension > 1) = default;
+        constexpr Triangl(const Point<Dimension> p_A, const Point<Dimension> p_B, const Point<Dimension> p_C) requires (Dimension > 1) : 
                                    point_A_(p_A), point_B_(p_B), point_C_(p_C)
         {
             if constexpr (Dimension == 3)
-                if (is_triangle_in_3D (p_A, p_B, p_C))
+                if (is_triangle_in_3D (p_A, p_B, p_C))  [[likely]]
                 {
                     #ifdef PLANE_OF_TRIANGL
                         plane_of_ = Plane3D{p_A, p_B, p_C};  // can except!!
@@ -373,9 +372,10 @@ class Triangl
                 }
 
             if constexpr (Dimension == 2)
-                if (is_triangle_in_2D (p_A, p_B, p_C))
+                if (is_triangle_in_2D (p_A, p_B, p_C))  [[likely]]
                     return;  // all good
 
+            static_assert(true, "triangle is unreal");  // need points printf!
             throw std::invalid_argument("triangle is unreal");
         }                            
 

@@ -5,7 +5,7 @@
 
 
 template <typename T>
-constexpr void do_zero(T& val)
+constexpr void do_zero(T& val) noexcept  // maybe cant be noexcept because .clear
 {
     if constexpr (requires { val.clear(); })  // constexpr for compile-time inlining
         val.clear();

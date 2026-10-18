@@ -1,5 +1,5 @@
 module;
-#include "../Header.h"
+#include "Header.h"
 
 export module geometry:point_v;
 
@@ -31,13 +31,13 @@ class alignas(GEOM_ALIGNMENT) Point
 
     //_________________________________________________________________________________________________________________________________________//
         //  D  //  Constructor for comfortable Zero point
-        explicit constexpr Point() noexcept = default;
+        constexpr Point() noexcept = default;  // explicit need?
 
         //  0  //  Constructor
         template <is_Decard_dim TypeCoord>
-        explicit constexpr Point(std::initializer_list <TypeCoord> list) noexcept // explicit is protection from implicit cast
+        constexpr Point(std::initializer_list <TypeCoord> list) noexcept // explicit is protection from implicit cast
         {
-            size_t i = 0;
+            std::size_t i = 0;
             for (const TypeCoord& val : list)
                 if (i < Dimension)
                     all_coords_[i++] = static_cast<precision_t>(val);  // not need move, because initializer_list is not owned data

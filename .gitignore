@@ -1,12 +1,20 @@
-.DS_Store
-makefile
-a.out
+# apparat
 gitignore       # я закинул чертежи Омега устройства в само Омега устройство
-a.out.dSYM
-.vscode
-app
-app.dSYM
-build
-_out_puts
 .cache
 .clangd
+.vscode
+makefile
+build
+
+# starts
+.DS_Store
+_out_puts
+app
+app.dSYM
+a.out
+a.out.dSYM
+
+# tests
+Cooked_tests.cpp
+*.stl
+*.csv

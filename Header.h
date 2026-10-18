@@ -21,6 +21,7 @@
 #include <string_view>
 #include <cmath>
 #include <complex>
+#include <array>
 //_________________________________________________________________________________________________________________________________________//
 
 
@@ -63,7 +64,7 @@ concept is_Decard_dim = requires(T a, T b)
     // cmake --build build
 //_______________________________
     // git add .
-    // git commit -m "add 2d intersection"
+    // git commit -m "upgrade Cmake + do tests"
     // git push
 //_______________________________
     // git pull
@@ -101,8 +102,7 @@ enum [[nodiscard]] errors_  // nodiscard -- no ignor result of func w\ this enum
         { \
             std::string err_msg = std::string("\n[Error] ") + __FILE__ + ":" + std::to_string(__LINE__) + \
                                             " | Type: " + TO_str(type_err) + " | Info: " + (message);   \
-            throw ExceptionType(err_msg); \
-        }
+            throw ExceptionType(err_msg); }
 #else 
     #define Th_row(what_need, ExceptionType, type_err, message)
 #endif     

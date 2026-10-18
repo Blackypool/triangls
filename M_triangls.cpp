@@ -1,7 +1,7 @@
 #include "Header.h"
-import geometry;
-// #include "geometry/point_v.cppm"
-// #include "geometry/areas.cppm"
+// import geometry;
+#include "geometry/point_v.cppm"
+#include "geometry/areas.cppm"
 
 
 //________________________________________________Questions_Tasks__________________________________________________________________________//
@@ -35,7 +35,7 @@ constexpr bool intersection_in_3D (const Triangl<Dimension>& tr_1, const Triangl
     ///////////////  PARALLELISM  ///////////////
     std::pair<bool, bool> is_parallel = tr_1.get_plane().compare_planes(tr_2.get_plane());
 
-    if (is_parallel.first == true)
+    if (is_parallel.first == true)  [[unlikely]]
     {
         if (is_parallel.second == true)  // triangles lie in one plane
             return intersection_in_2D(tr_1, tr_2);
@@ -56,7 +56,7 @@ template <std::size_t Dimension>
 constexpr bool intersection_in_3D (const Triangl<Dimension>& trngl, const Point<Dimension>& pnt)   noexcept requires (Dimension == 3)  // TRIANGEL + POINT //
 {
     ///////////////  BROAD_PHASE  ///////////////
-    if ( !(trngl.get_plane().is_on_plane(pnt)) )
+    if ( !(trngl.get_plane().is_on_plane(pnt)) )  [[likely]]
         return false;
     /////////////////////////////////////////////
 
