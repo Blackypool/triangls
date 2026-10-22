@@ -133,6 +133,12 @@ class alignas(GEOM_ALIGNMENT) Vector : public Point<Dimension>
             return sum;
         }
 
+        //  * = Dot Product  //  (v1 * v2)
+        constexpr precision_t operator* (const Vector<Dimension>& other) const noexcept
+        {
+            return dot (other);
+        }
+
         //  Vector product (only 3D)  //  [v1 x v2]
         constexpr Vector<3> operator^(const Vector<3>& other) const noexcept requires (Dimension == 3)
         {

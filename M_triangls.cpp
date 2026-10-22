@@ -5,7 +5,10 @@
 
 
 //________________________________________________Questions_Tasks__________________________________________________________________________//
+// добавить AABB для больших наборов треугольников
+// только как эти наборы строить тогда
 
+// SAT for 2D need do for 2d intersection
 //_________________________________________________________________________________________________________________________________________//
 
 
@@ -35,9 +38,9 @@ constexpr bool intersection_in_3D (const Triangl<Dimension>& tr_1, const Triangl
     ///////////////  PARALLELISM  ///////////////
     std::pair<bool, bool> is_parallel = tr_1.get_plane().compare_planes(tr_2.get_plane());
 
-    if (is_parallel.first == true)  [[unlikely]]
+    if (is_parallel.first == true)  [[unlikely]]  // overall, this is an unlikely, both in random encounters and in video games when AABB matches
     {
-        if (is_parallel.second == true)  // triangles lie in one plane
+        if (is_parallel.second == true)  // triangles lie in one plane // cant predict w\o additional information
             return intersection_in_2D(tr_1, tr_2);
 
         return false;  // parallel planes
@@ -46,9 +49,7 @@ constexpr bool intersection_in_3D (const Triangl<Dimension>& tr_1, const Triangl
 
 
     ///////////////  NARROW_PHASE  //////////////
-    #ifdef MOLLER_ALG
-        return complete_intersection_triangls (tr_1, tr_2);
-    #endif
+    return complete_intersection_triangls (tr_1, tr_2);
     /////////////////////////////////////////////
 }
 
@@ -71,11 +72,8 @@ constexpr bool intersection_in_3D (const Triangl<Dimension>& trngl, const Point<
 //________________________________________________COMPARE_IN_2D____________________________________________________________________________//
 constexpr bool intersection_in_2D (const Triangl<3>& tr_1, const Triangl<3>& tr_2) noexcept // TRIANGEL + TRIANGEL //
 {
-    bool is_A_in_tr = intersection_in_2D (tr_1, tr_2.get_A());
-    bool is_B_in_tr = intersection_in_2D (tr_1, tr_2.get_B());
-    bool is_C_in_tr = intersection_in_2D (tr_1, tr_2.get_C());
-
-    return is_A_in_tr || is_B_in_tr || is_C_in_tr;  // if there is at least one
+    // SAT for 2D need todo
+    return false;
 }
 
 constexpr bool intersection_in_2D (const Triangl<3>& trngl, const Point<3>& pnt) noexcept  // TRIANGEL + POINT //  // 15+ 15* 7cmp
@@ -108,57 +106,215 @@ constexpr bool intersection_in_2D (const Triangl<3>& trngl, const Point<3>& pnt)
 
 
 //_______________________________________________NARROW_PHASE______________________________________________________________________________//
+#ifdef MOLLER_ALG
+
+struct All_dist
+{
+    precision_t len_A, len_B, len_C;
+};
+enum who_is_zero  // who lie on line of intersection of planes //
+{
+    NO_ZERO = 0x00000000,
+
+    A_LIE = 0x00000001,
+    B_LIE = 0x00000010,
+    C_LIE = 0x00000100,
+
+    AB_LIE = 0x00000011,
+    AC_LIE = 0x00000101,
+    BC_LIE = 0x00000110,
+
+    // ABC_LIE = 0x00000111,  // is no exist //
+};
+
 constexpr bool complete_intersection_triangls (const Triangl<3>& tr_1, const Triangl<3>& tr_2) noexcept
 {
+    All_dist all_dist_for_tr1{};
+    All_dist all_dist_for_tr2{};
+
     // points lie on the same side of the line of intersection of the planes
-    if (check_sign_of_len (tr_1, tr_2.get_plane())) return false;
-    if (check_sign_of_len (tr_2, tr_1.get_plane())) return false;
+    std::pair< bool, int > is_same_side_1 = check_sign_of_len (tr_1, tr_2.get_plane(), all_dist_for_tr1);
+    std::pair< bool, int > is_same_side_2 = check_sign_of_len (tr_2, tr_1.get_plane(), all_dist_for_tr2);
+
+    if (is_same_side_1.first) return false;
+    if (is_same_side_2.first) return false;
+    //_______________________________________//
+
+
+    // check zero lens situations //
+
+    //_______________________________________//
+
+
+    // get points on line of triangles
+    std::pair< Point<3>, Point<3> > two_p_tr1_on_l = get_points_on_line (all_dist_for_tr1, tr_1);
+    std::pair< Point<3>, Point<3> > two_p_tr2_on_l = get_points_on_line (all_dist_for_tr2, tr_2);
+    //_______________________________________//
     
-    Vector<3> normal_1 = tr_1.normal();
-    Vector<3> normal_2 = tr_2.normal();
 
-    Vector<3> line_intersection = normal_1 ^ normal_2;
-
-    // из расстояний находим через отношения точки которые лежат на прямой пересечения
-    // рассматриваем 2д случай
+    // check intersection of 2 segments on line
+    return check_four_p_intersection (two_p_tr1_on_l.first, two_p_tr1_on_l.second, two_p_tr2_on_l.first, two_p_tr2_on_l.second);
 }
 
-// возвращать пару: структуру с длинами и булево?
-template <std::size_t Dimension>
-constexpr bool check_sign_of_len (const Triangl<Dimension>& tr, const Plane3D& plane) noexcept // return true if all len from points of tr have one sign
+constexpr std::pair< bool, int > check_sign_of_len (const Triangl<3>& tr, const Plane3D& plane, All_dist& all_dis) noexcept // return true if all len from points of tr have one sign
 {
-    precision_t len_A = plane.distance(tr.get_A());
-    precision_t len_B = plane.distance(tr.get_B());
-    precision_t len_C = plane.distance(tr.get_C());
+    all_dis.len_A = plane.distance(tr.get_A());
+    all_dis.len_B = plane.distance(tr.get_B());
+    all_dis.len_C = plane.distance(tr.get_C());
 
-    if (is_nearly_zero(len_A)) return false;
-    if (is_nearly_zero(len_B)) return false;
-    if (is_nearly_zero(len_C)) return false;
-
-    if (len_A > 0)
+    //______________DO_ZERO__________________//
+    int flag = NO_ZERO;
+    // A = 0 //
+    if (is_nearly_zero(all_dis.len_A))
     {
-        if (len_B > 0)
+        all_dis.len_A = 0;
+        flag |= A_LIE;
+
+        if (is_nearly_zero(all_dis.len_B))  // A = 0 && B = 0 //
         {
-            if (len_C > 0)
-                return true;
-            
-            return false;
+            all_dis.len_B = 0;
+            flag |= B_LIE;
+
+            return {false, flag};  // A = 0 && B = 0 && C != 0 // C cant be 0, because this is triangle after initialization
         }
-        return false;
+
+        if (is_nearly_zero(all_dis.len_C))  // A = 0 && B != 0 && C = 0 //
+        {
+            flag |= C_LIE;
+            all_dis.len_C = 0;
+        }
+
+        return {false, flag};  // A = 0 && B != 0 && C != 0 (+ prev if)//
     }
 
-    if (len_A < 0)
+    //  A != 0  //
+    if (is_nearly_zero(all_dis.len_B))  // A != 0 && B = 0 //
     {
-        if (len_B < 0)
+        all_dis.len_B = 0;
+        flag |= B_LIE;
+
+        if (is_nearly_zero(all_dis.len_C))  // A != 0 && B = 0 && C = 0//
         {
-            if (len_C < 0)
-                return true;
-            
-            return false;
+            all_dis.len_C = 0;
+            flag |= C_LIE;
         }
-        return false;
+
+        return {false, flag};    // A != 0 && B = 0 && C != 0 (+prev if) //
     }
 
-    return false;
+    //  A !=0 && B != 0  //
+    if (is_nearly_zero(all_dis.len_C))
+    {
+        all_dis.len_C = 0;
+        flag |= C_LIE;
+
+        return {false, flag};  //  A !=0 && B != 0 && C = 0 //
+    }
+    //_______________________________________//
+
+    //  A !=0 && B != 0 && C != 0  //
+    if (all_dis.len_A > 0)
+    {
+        if (all_dis.len_B > 0)
+        {
+            if (all_dis.len_C > 0)
+                return {true, NO_ZERO};
+            
+            return {false, NO_ZERO};
+        }
+        return {false, NO_ZERO};
+    }
+
+    // if (all_dis.len_A < 0)
+    if (all_dis.len_B < 0)
+    {
+        if (all_dis.len_C < 0)
+            return {true, NO_ZERO};
+        
+        return {false, NO_ZERO};
+    }
+
+    return {false, NO_ZERO};
 }
+
+#define RET_W_SOLO_C return {get_p_out_formula (tr.get_C(), all_dist.len_C, all_dist.len_A, tr.get_A()),\
+                             get_p_out_formula (tr.get_C(), all_dist.len_C, all_dist.len_B, tr.get_B()) };
+
+#define RET_W_SOLO_B return {get_p_out_formula (tr.get_B(), all_dist.len_B, all_dist.len_A, tr.get_A()),\
+                             get_p_out_formula (tr.get_B(), all_dist.len_B, all_dist.len_C, tr.get_C()) };
+
+#define RET_W_SOLO_A return {get_p_out_formula (tr.get_A(), all_dist.len_A, all_dist.len_B, tr.get_B()),\
+                             get_p_out_formula (tr.get_A(), all_dist.len_A, all_dist.len_C, tr.get_C()) };
+
+constexpr std::pair< Point<3>, Point<3> > get_points_on_line (All_dist& all_dist, const Triangl<3>& tr) noexcept
+{
+    // find point that lies solo on one side of the plane
+    if ((all_dist.len_A - EPSILON_OF_ZERO) < 0)
+    {
+        if ((all_dist.len_B - EPSILON_OF_ZERO) < 0)
+            RET_W_SOLO_C;
+        
+        if ((all_dist.len_C - EPSILON_OF_ZERO) < 0)
+            RET_W_SOLO_B;
+
+        RET_W_SOLO_A;
+    }
+
+    // if (all_dist.len_A > 0)
+    if ((all_dist.len_B - EPSILON_OF_ZERO) > 0)
+        RET_W_SOLO_C;
+        
+    if ((all_dist.len_C - EPSILON_OF_ZERO) > 0)
+        RET_W_SOLO_B;
+
+    RET_W_SOLO_A;
+}
+
+constexpr Point<3> get_p_out_formula (const Point<3>& p_A, const precision_t d0, const precision_t d1, const Point<3>& p_B)
+{
+    return p_A + (d0 / (d0 - d1)) * (p_B - p_A);
+}
+
+constexpr bool check_four_p_intersection (const Point<3>& Ap_1, const Point<3>& Ap_2, const Point<3>& Bp_1, const Point<3>& Bp_2) noexcept
+{
+    if ( is_nearly_zero (Ap_1.z() - Ap_2.z()) )  [[unlikely]]
+    {
+        if ( is_nearly_zero (Ap_1.y() - Ap_2.y()) )  [[unlikely]]
+        {
+            if ( is_nearly_zero (Ap_1.x() - Ap_2.x()) )  [[unlikely]]  // point is one
+            {
+                precision_t B_max = std::max(Bp_1.x(), Bp_2.x());
+                precision_t B_min = std::min(Bp_1.x(), Bp_2.x());
+                return ((Ap_1.x() - B_min - EPSILON_OF_ZERO) > 0) && ((Ap_1.x() < B_max - Ap_1.x() - EPSILON_OF_ZERO) > 0);
+            }
+            return cmp_four_points_on_one_axe (Ap_1.x(), Ap_2.x(), Bp_1.x(), Bp_2.x());  // can cmp on Y axe
+        }
+        return cmp_four_points_on_one_axe (Ap_1.y(), Ap_2.y(), Bp_1.y(), Bp_2.y());  // can cmp on Y axe
+    }
+    return cmp_four_points_on_one_axe (Ap_1.z(), Ap_2.z(), Bp_1.z(), Bp_2.z());  // can cmp on Z axe
+}
+
+constexpr bool cmp_four_points_on_one_axe (const precision_t& Ap_1, const precision_t& Ap_2, 
+                                           const precision_t& Bp_1, const precision_t& Bp_2) noexcept  // return true if min < max
+{
+    const precision_t A_min = std::min(Ap_1, Ap_2);
+    const precision_t A_max = std::max(Ap_1, Ap_2);
+
+    const precision_t B_min = std::min(Bp_1, Bp_2);
+    const precision_t B_max = std::max(Bp_1, Bp_2);
+
+    return ((A_max - B_min - EPSILON_OF_ZERO) > 0) && ((B_max - A_min - EPSILON_OF_ZERO) > 0);
+}
+#endif  //  MOLLER_ALG
+
+#ifdef SUB_OF_MINKOVSKI
+constexpr bool complete_intersection_triangls (const Triangl<3>& tr_1, const Triangl<3>& tr_2) noexcept
+{
+
+
+
+
+
+}
+#endif
 //_________________________________________________________________________________________________________________________________________//

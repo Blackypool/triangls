@@ -18,4 +18,3 @@ a.out.dSYM
 Cooked_tests.cpp
 *.csv
 *.stl
-!Grogu.stl

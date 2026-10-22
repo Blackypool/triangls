@@ -26,18 +26,21 @@
 
 
 //_____________________________________________OPTIMIZATIONS_______________________________________________________________________________//
-#define PLANE_OF_TRIANGL    // Should the plane be stored in the triangle class?
+#define PLANE_OF_TRIANGL    // The plane be stored in the triangle class
 
-#define MOLLER_ALG          // Using the Moeller algorithm to accurately check the intersection
-
-#define SUM_AREA_for_check_point_in_triangel  // Checking whether a point lies within a triangle by summing the areas
-
-#define AABB_SHELL          // Using AABB for broad check the intersection 
-
+// Broad intersection phase //
+#define AABB_SHELL
 #ifndef AABB_SHELL
-    #define SPHERE_SHELL    // Using Sphere around the triangle for broad check the intersection 
+    #define SPHERE_SHELL
 #endif
 
+// Narrow intersection phase //
+#define MOLLER_ALG
+#ifndef MOLLER_ALG
+    #define SUB_OF_MINKOVSKI
+#endif
+
+// Another optimizations //
 #define EPSILON_OF_ZERO 1e-4
 using precision_t = float;
 inline constexpr std::size_t GEOM_ALIGNMENT = 16;  // alignment of basic geometry structures
@@ -64,7 +67,7 @@ concept is_Decard_dim = requires(T a, T b)
     // cmake --build build
 //_______________________________
     // git add .
-    // git commit -m "add source for generating tests"
+    // git commit -m "need backup"
     // git push
 //_______________________________
     // git pull
@@ -109,11 +112,13 @@ enum [[nodiscard]] errors_  // nodiscard -- no ignor result of func w\ this enum
 //_________________________________________________________________________________________________________________________________________//
 
 
-
 //______________________________________________HEADERS_OF_ANOTHER_________________________________________________________________________//
 #include "Dop_math.h"
 //_________________________________________________________________________________________________________________________________________//
 
+
+//____________________________________________________SPAM_________________________________________________________________________________//
+//_________________________________________________________________________________________________________________________________________//
 
 
 #endif // MAIN_HEADER_H

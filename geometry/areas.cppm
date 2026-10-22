@@ -16,25 +16,25 @@ class alignas(GEOM_ALIGNMENT) Plane3D
         constexpr void need_negative_li() noexcept
         {
             if (!is_nearly_zero(A_))
+            {
                 if (A_ < 0)
-                {
                     negative_all();
-                    return;
-                }
+                return;
+            }
 
             if (!is_nearly_zero(B_))
+            {
                 if (B_ < 0)
-                {
                     negative_all();
-                    return;
-                }
+                return;
+            }
 
             if (!is_nearly_zero(C_))
+            {
                 if (C_ < 0)
-                {
                     negative_all();
-                    return;
-                }
+                return;
+            }
         }
 
         constexpr void negative_all() noexcept
@@ -145,9 +145,9 @@ class Parallelepiped
             int c1 = (another.min_left_.x() <= max_right_.x());
             int c2 = (another.min_left_.y() <= max_right_.y());
             int c3 = (another.min_left_.z() <= max_right_.z());
-            int c4 = (another.min_left_.x() >= min_left_.x());
-            int c5 = (another.min_left_.y() >= min_left_.y());
-            int c6 = (another.min_left_.z() >= min_left_.z());
+            int c4 = (another.max_right_.x() >= min_left_.x());
+            int c5 = (another.max_right_.y() >= min_left_.y());
+            int c6 = (another.max_right_.z() >= min_left_.z());
 
             return (c1 * c2 * c3 * c4 * c5 * c6) != 0;
         }
@@ -289,7 +289,16 @@ class alignas(GEOM_ALIGNMENT) Line2D
 //______________________________________________________LINE_3D____________________________________________________________________________//
 class Line3D
 {
+    private:
+        Point<3> point_on_line_;
+        Vector<3> slide_;
 
+    public:
+        constexpr explicit Line3D() noexcept = default;
+        constexpr Line3D(const Point<3>& p, const Vector<3>& v) noexcept : point_on_line_(p), slide_(v) {}
+
+        constexpr const Point<3> get_point ()   const noexcept {return point_on_line_;}
+        constexpr const Vector<3> get_vector () const noexcept {return slide_;}
 };
 //_________________________________________________________________________________________________________________________________________//
 
@@ -382,6 +391,10 @@ class Triangl
         constexpr const Point<Dimension> get_A () const noexcept {return point_A_;}
         constexpr const Point<Dimension> get_B () const noexcept {return point_B_;}
         constexpr const Point<Dimension> get_C () const noexcept {return point_C_;}
+
+        constexpr const Line3D get_AB () const noexcept requires (Dimension == 3) { return {point_A_, point_B_ - point_A_}; }
+        constexpr const Line3D get_BC () const noexcept requires (Dimension == 3) { return {point_B_, point_C_ - point_B_}; }
+        constexpr const Line3D get_AC () const noexcept requires (Dimension == 3) { return {point_A_, point_C_ - point_A_}; }
 
         #ifdef PLANE_OF_TRIANGL
             constexpr const Plane3D get_plane ()  const noexcept {return plane_of_;}
