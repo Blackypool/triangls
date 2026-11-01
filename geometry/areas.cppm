@@ -1,5 +1,5 @@
 module;
-#include "Header.h"
+#include "Header.hpp"
 
 export module geometry:areas;
 
@@ -392,9 +392,21 @@ class Triangl
         constexpr const Point<Dimension> get_B () const noexcept {return point_B_;}
         constexpr const Point<Dimension> get_C () const noexcept {return point_C_;}
 
-        constexpr const Line3D get_AB () const noexcept requires (Dimension == 3) { return {point_A_, point_B_ - point_A_}; }
-        constexpr const Line3D get_BC () const noexcept requires (Dimension == 3) { return {point_B_, point_C_ - point_B_}; }
-        constexpr const Line3D get_AC () const noexcept requires (Dimension == 3) { return {point_A_, point_C_ - point_A_}; }
+        constexpr const Point<Dimension> operator[](int index) const noexcept
+        {
+            if (index == 0)
+                return point_A_;
+            if (index == 1)
+                return point_B_;
+            if (index == 2)
+                return point_C_;
+            
+            return {0, 0, 0};
+        }
+
+        constexpr const Line3D get_AB () const noexcept requires (Dimension == 3) {return {point_A_, point_B_ - point_A_};}
+        constexpr const Line3D get_BC () const noexcept requires (Dimension == 3) {return {point_B_, point_C_ - point_B_};}
+        constexpr const Line3D get_AC () const noexcept requires (Dimension == 3) {return {point_A_, point_C_ - point_A_};}
 
         #ifdef PLANE_OF_TRIANGL
             constexpr const Plane3D get_plane ()  const noexcept {return plane_of_;}

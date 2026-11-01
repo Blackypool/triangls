@@ -1,5 +1,5 @@
-#ifndef MAIN_HEADER_H
-#define MAIN_HEADER_H
+#ifndef MAIN_HEADER_HPP
+#define MAIN_HEADER_HPP
 
 //______________________________________________BIBLIOTECS_________________________________________________________________________________//
 #include <algorithm>
@@ -67,7 +67,7 @@ concept is_Decard_dim = requires(T a, T b)
     // cmake --build build
 //_______________________________
     // git add .
-    // git commit -m "need backup"
+    // git commit -m "see all variants (vrode) + some needed updates"
     // git push
 //_______________________________
     // git pull
@@ -113,7 +113,7 @@ enum [[nodiscard]] errors_  // nodiscard -- no ignor result of func w\ this enum
 
 
 //______________________________________________HEADERS_OF_ANOTHER_________________________________________________________________________//
-#include "Dop_math.h"
+#include "mathematics/Dop_math.hpp"
 //_________________________________________________________________________________________________________________________________________//
 
 

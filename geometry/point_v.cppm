@@ -1,5 +1,5 @@
 module;
-#include "Header.h"
+#include "Header.hpp"
 
 export module geometry:point_v;
 
@@ -166,6 +166,26 @@ class alignas(GEOM_ALIGNMENT) Vector : public Point<Dimension>
         }
 };
 //_________________________________________________________________________________________________________________________________________//
+
+        //  Dot Product  //  (p * v)
+        template <std::size_t Dimension>
+        constexpr precision_t operator*(const Point<Dimension>& point, const Vector<Dimension>& vector) noexcept
+        {
+            precision_t result{};
+
+            for (std::size_t i = 0; i < Dimension; ++i)
+                result += point[i] * vector[i];
+
+            return result;
+        }
+
+        //  Dot Product  //  (v * p)
+        template <std::size_t Dimension>
+        constexpr precision_t operator*(const Vector<Dimension>& vector, const Point<Dimension>& point) noexcept
+        {
+            return point * vector;
+        }
+
         //  scalar *  //
         template <std::size_t Dimension>
         constexpr Vector<Dimension> operator*(precision_t scalar, const Vector<Dimension>& vector) noexcept
